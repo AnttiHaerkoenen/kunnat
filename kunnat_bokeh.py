@@ -20,11 +20,12 @@ palette.reverse()
 DATA_DIR = 'data'
 
 
-def multipolygons_to_polygons(geodataframe, geometry_column='geometry'):
+def multipolygons_to_polygons(geodataframe, geometry_column='geometry', min_area=0):
     """
     Turns rows with MultiPolygons into groups of rows with single Polygon each.
-    :param geometry_column: Column containing Polygons and Multipolygons.
     :param geodataframe:
+    :param geometry_column: Column containing Polygons and Multipolygons.
+    :param min_area: Size of Polygons to be removed
     :return: enlargened geodataframed with each Polygon in its own row
     """
     new_geodataframe = gpd.GeoDataFrame(columns=geodataframe.columns)
@@ -36,7 +37,8 @@ def multipolygons_to_polygons(geodataframe, geometry_column='geometry'):
             for poly in geom:
                 new_row = row.copy()
                 new_row[geometry_column] = poly
-                new_geodataframe = new_geodataframe.append(new_row)
+                if poly.area >= min_area:
+                    new_geodataframe = new_geodataframe.append(new_row)
     return new_geodataframe.reset_index()
 
 
@@ -45,12 +47,12 @@ if __name__ == '__main__':
     kunnat = gpd.read_file('kuntienAvainluvut_2016.shp')
     kunnat.to_crs(epsg=3067)
 
-    kunnat = multipolygons_to_polygons(kunnat)
+    kunnat = multipolygons_to_polygons(kunnat, min_area=2000000)
     kunnat['x'] = kunnat['geometry'].apply(lambda geom: tuple(geom.exterior.coords.xy[0]))
     kunnat['y'] = kunnat['geometry'].apply(lambda geom: tuple(geom.exterior.coords.xy[1]))
 
     kunnat['poly_area'] = kunnat.geometry.apply(lambda p: p.area)
-    kunnat = kunnat[kunnat['poly_area'] > 2000000]
+    # kunnat = kunnat[kunnat['poly_area'] > 2000000]
 
     kunnat.geometry = kunnat.geometry.apply(lambda poly: poly.simplify(1000))
 
