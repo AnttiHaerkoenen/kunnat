@@ -3,8 +3,14 @@
 import os
 
 from bokeh.plotting import figure, show
-from bokeh.palettes import RdYlGn5 as palette
-from bokeh.models import HoverTool, GeoJSONDataSource, LinearColorMapper, CustomJSTransform
+from bokeh.palettes import RdYlGn8 as palette
+from bokeh.models import (
+    HoverTool,
+    GeoJSONDataSource,
+    LinearColorMapper,
+    Title
+)
+
 import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Polygon, MultiPolygon
@@ -38,24 +44,30 @@ if __name__ == '__main__':
     os.chdir(DATA_DIR)
     kunnat = gpd.read_file('kuntienAvainluvut_2016.shp')
     kunnat.to_crs(epsg=3067)
+
     kunnat = multipolygons_to_polygons(kunnat)
     kunnat['x'] = kunnat['geometry'].apply(lambda geom: tuple(geom.exterior.coords.xy[0]))
     kunnat['y'] = kunnat['geometry'].apply(lambda geom: tuple(geom.exterior.coords.xy[1]))
 
     kunnat['poly_area'] = kunnat.geometry.apply(lambda p: p.area)
     kunnat = kunnat[kunnat['poly_area'] > 2000000]
+
+    kunnat.geometry = kunnat.geometry.apply(lambda poly: poly.simplify(1000))
+
     kunnat.columns = [w.replace(r'%', '_pct') for w in kunnat.columns]
 
     kunnat_src = GeoJSONDataSource(geojson=kunnat.to_json())
     color_mapper = LinearColorMapper(palette=palette)
-    print()
     fig = figure(
-        title='Työttömyys 2016',
+        title='Muuttovoitto ja muuttotappio 2016',
         x_axis_location=None,
         y_axis_location=None,
         plot_width=600,
         plot_height=950
     )
+    fig.title.text_font_size = "20px"
+    fig.grid.grid_line_color = None
+    fig.add_layout(Title(text="© Tilastokeskus, Kuntien avainluvut, 2016", align="left"), "below")
     fig.patches(
         xs='x',
         ys='y',
