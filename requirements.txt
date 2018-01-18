@@ -1,2 +1,5 @@
 bokeh
 geopandas
+pandas
+shapely
+flexx
