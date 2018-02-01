@@ -10,7 +10,6 @@ from bokeh.models import (
     LinearColorMapper,
     Title
 )
-
 import geopandas as gpd
 from shapely.geometry import Polygon, MultiPolygon
 
