@@ -2,7 +2,7 @@
 
 ## Tarkoitus
 
-Interaktiivinen kartta Suomen kunnista. Daa.
+Interaktiivinen kartta Suomen kunnista
 
 ## Aineisto
 © Tilastokeskus, Kuntien avainluvut, 2016
